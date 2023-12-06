@@ -89,8 +89,8 @@ router.post("/forgot-password", express.json(), async (req, res) => {
       
       const secret = process.env.secretkey;
       const token = jwt.sign({ email: user.email }, secret, { expiresIn: '1h' });
-      const resetLink = `https://password-reset-frontend-eosin.vercel.app/users/reset-password/${email}/${token}`;
-      return res.json({ message: "Reset link generated successfully,kindly check the console and click the link which directs you to change your password" , resetLink});
+      const resetLink = `http://localhost:9000/users/reset-password/${email}/${token}`;
+      return res.json({ message: "Reset link generated successfully.Reset link generated successfully,kindly check the console and click the link which directs you to change your passwords" , resetLink});
   
     } catch (error) {
       console.error("Error generating reset link:", error);
@@ -185,4 +185,37 @@ router.post("/userData", express.json(), async (req, res) => {
   
   
 export const usersRouter=router
+
+
+
+
+
+
+router.post("/forgot-password", express.json(), async (req, res) => {
+  const { email } = req.body;
+  try {
+      const user = await getUsersByEmail(email);
+      if (!user) {
+          return res.status(404).json({ error: "User Not Found" });
+      }
+    
+      const secret = process.env.secretkey;
+      const token = jwt.sign({ email: user.email }, secret, { expiresIn: '1h' });
+      const resetLink = `https://password-reset-frontend-eosin.vercel.app/reset-password/${email}/${token}`;
+      const message = "Kindly check the console for the link. You will be redirected to the reset password page.";
+      
+      // You can log the reset link and message in the console
+      console.log("Reset Link:", resetLink);
+      console.log("Message:", message);
+      
+      return res.json({ message, resetLink });
+  } catch (error) {
+      console.error("Error generating reset link:", error);
+      return res.status(500).json({ error: "Failed to generate reset link" });
+  }
+});
+
+
+
+
 
