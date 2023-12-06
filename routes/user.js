@@ -76,6 +76,9 @@ res.send({message:"Login Successful", token:token})
 //     }
 //   });
 
+
+
+
 router.post("/forgot-password", express.json(), async (req, res) => {
     const { email } = req.body;
     try {
@@ -86,8 +89,8 @@ router.post("/forgot-password", express.json(), async (req, res) => {
       
       const secret = process.env.secretkey;
       const token = jwt.sign({ email: user.email }, secret, { expiresIn: '1h' });
-      const resetLink = `http://localhost:9000/reset-password/${token}`;
-      return res.json({ message: "Reset link generated successfully", resetLink ,token});
+      const resetLink = `http://localhost:9000/users/reset-password/${email}/${token}`;
+      return res.json({ message: "Reset link generated successfully", resetLink});
   
     } catch (error) {
       console.error("Error generating reset link:", error);
@@ -134,32 +137,61 @@ router.get("/reset-password/:email", express.json(), async (req, res) => {
     }
 });
 
-//get reset page
-router.get("/reset-password/:token", express.json(), async (req, res) => {
-  const { token } = req.params;
 
+//get the reset password using the link
+router.get("/reset-password/:email/:token", express.json(), async (req, res) => {
+  const { email, token } = req.params;
+
+  const oldUser = await getUsersByEmail(email)
+  if (!oldUser) {
+    return res.json({ status: "User Not Exists!!" });
+  }
   try {
-    const secret = process.env.secretkey;
-    const decoded = jwt.verify(token, secret);
-
-    // Assuming the email is nested under 'user' property in the decoded token
-    const email = decoded.user.email;
-
-    const oldUser = await getUsersByEmail(email);
-    if (!oldUser) {
-      return res.status(404).json({ status: "User Not Found" });
-    }
-
-    res.json({ email, status: "verified", message: "Token is valid" });
+    const resetURL = `http://localhost:3000/reset-password/${email}/${token}`;
+    res.json({ email, resetLink: resetURL });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ status: "Invalid or Expired Token" });
+    res.json({ status: "Something Went Wrong" });
   }
+});
+
+//get userdata
+router.post("/userData", express.json(), async (req, res) => {
+  const { token } = req.body;
+  try {
+    const user = jwt.verify(token, process.env.secretkey, (err, res) => {
+      if (err) {
+        return "token expired";
+      }
+      return res;
+    });
+    console.log(user);
+    if (user == "token expired") {
+      return res.send({ status: "error", data: "token expired" });
+    }
+
+    const useremail =  getUsersByEmail(email)
+      .then((data) => {
+        res.send({ status: "ok", data: data });
+      })
+      .catch((error) => {
+        res.send({ status: "error", data: error });
+      });
+  } catch (error) { }
 });
 
   
   
   
 export const usersRouter=router
+
+
+
+
+
+
+
+
+
 
 
