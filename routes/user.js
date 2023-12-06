@@ -148,7 +148,7 @@ router.get("/reset-password/:email/:token",express.json(), async (req, res) => {
   }
   try {
     const result=oldUser
-    res.redirect(`http://localhost:3000/reset-password/${email}/${token}`);
+    res.redirect(`https://password-reset-frontend-eosin.vercel.app//reset-password/${email}/${token}`);
 
   } catch (error) {
     console.log(error);
