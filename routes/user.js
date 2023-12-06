@@ -139,7 +139,7 @@ router.get("/reset-password/:email", express.json(), async (req, res) => {
 
 
 //get the reset password using the link
-router.get("/reset-password/:email/:token", express.json(), async (req, res) => {
+router.get("/reset-password/:email/:token",express.json(), async (req, res) => {
   const { email, token } = req.params;
 
   const oldUser = await getUsersByEmail(email)
@@ -147,8 +147,9 @@ router.get("/reset-password/:email/:token", express.json(), async (req, res) => 
     return res.json({ status: "User Not Exists!!" });
   }
   try {
-    const resetURL = `http://localhost:3000/reset-password/${email}/${token}`;
-    res.json({ email, resetLink: resetURL });
+    const result=oldUser
+    res.redirect(`http://localhost:3000/reset-password/${email}/${token}`);
+
   } catch (error) {
     console.log(error);
     res.json({ status: "Something Went Wrong" });
