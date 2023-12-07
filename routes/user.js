@@ -89,7 +89,7 @@ router.post("/forgot-password", express.json(), async (req, res) => {
       
       const secret = process.env.secretkey;
       const token = jwt.sign({ email: user.email }, secret, { expiresIn: '1h' });
-      const resetLink = `http://localhost:9000/users/reset-password/${email}/${token}`;
+      const resetLink = `https://password-reset-bgme.onrender.com/users/reset-password/${email}/${token}`;
       return res.json({ message: "Reset link generated successfully.Reset link generated successfully,kindly check the console and click the link which directs you to change your passwords" , resetLink});
   
     } catch (error) {
