@@ -31,7 +31,7 @@ router.post("/signup", express.json(), async (req, res) => {
       // If the user already exists, send a 400 status with a custom error message
       return res.status(400).json({ error: "Email already exists" });
     } else {
-      const hashedPassword = await genPassword(email);
+      const hashedPassword = await genPassword(password);
       const result = await createUser(email, hashedPassword);
       return res.status(201).json({ message: "User signed up successfully", result });
     }
