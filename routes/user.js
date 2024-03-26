@@ -3,8 +3,21 @@ import {genPassword,createUser,getUsersByEmail,getAllUsers,forgotPassword,resetP
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
 import nodemailer from 'nodemailer';
+import 'dotenv/config'
 
 const router=express.Router()
+
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+
+  auth: {
+    user: process.env.email,
+    pass: process.env.passwordemail
+  },
+});
+
 
 
 //get all users
@@ -12,6 +25,7 @@ router.get("/",async (req, res)=>{
     const result=await getAllUsers()
     res.send(result)
 })
+
 
 //delete all users using email
 router.delete("/:email",async (req, res)=>{
@@ -28,7 +42,6 @@ router.post("/signup", express.json(), async (req, res) => {
     const isUserExist = await getUsersByEmail(email);
   
     if (isUserExist) {
-      // If the user already exists, send a 400 status with a custom error message
       return res.status(400).json({ error: "Email already exists" });
     } else {
       const hashedPassword = await genPassword(password);
@@ -57,6 +70,47 @@ res.send({message:"Login Successful", token:token})
 })
 
 
+//forgot password link
+router.post("/forgot-password", express.json(), async (req, res) => {
+  const { email } = req.body;
+  try {
+    const user = await getUsersByEmail(email);
+    if (!user) {
+      return res.status(404).json({ error: "User Not Found" });
+    }
+
+    const secret = process.env.secretkey;
+    const token = jwt.sign({ email: user.email }, secret, { expiresIn: '1h' });
+    const resetLink = `https://password-reset-frontend-eosin.vercel.app/reset-password/${email}/${token}`;
+    
+    //  email message
+    const mailOptions = {
+      from: process.env.email,
+      to: email,
+      subject: 'Reset Password',
+      text: `Click the following link to reset your password: ${resetLink}`
+    };
+    
+    // Send the email
+    transporter.sendMail(mailOptions, function (error, info) {
+      if (error) {
+        console.log(error);
+        return res.status(500).json({ error: "Failed to send reset email" });
+      } else {
+        console.log('Email sent: ' + info.response);
+        return res.json({ message: "Reset email sent successfully", resetLink });
+      }
+    });
+  } catch (error) {
+    console.error("Error generating reset link:", error);
+    return res.status(500).json({ error: "Failed to generate reset link" });
+  }
+});
+
+
+
+
+
 
 //forgot password
 // router.post("/forgot-password", express.json(), async (req, res) => {
@@ -79,24 +133,24 @@ res.send({message:"Login Successful", token:token})
 
 
 
-router.post("/forgot-password", express.json(), async (req, res) => {
-    const { email } = req.body;
-    try {
-      const user = await getUsersByEmail(email);
-      if (!user) {
-        return res.status(404).json({ error: "User Not Found" });
-      }
+// router.post("/forgot-password", express.json(), async (req, res) => {
+//     const { email } = req.body;
+//     try {
+//       const user = await getUsersByEmail(email);
+//       if (!user) {
+//         return res.status(404).json({ error: "User Not Found" });
+//       }
       
-      const secret = process.env.secretkey;
-      const token = jwt.sign({ email: user.email }, secret, { expiresIn: '1h' });
-      const resetLink = `https://password-reset-bgme.onrender.com/users/reset-password/${email}/${token}`;
-      return res.json({ message: "Reset link generated successfully.Reset link generated successfully,kindly check the console and click the link which directs you to change your passwords" , resetLink});
+//       const secret = process.env.secretkey;
+//       const token = jwt.sign({ email: user.email }, secret, { expiresIn: '1h' });
+//       const resetLink = `https://password-reset-bgme.onrender.com/users/reset-password/${email}/${token}`;
+//       return res.json({ message: "Reset link generated successfully.Reset link generated successfully,kindly check the console and click the link which directs you to change your passwords" , resetLink});
   
-    } catch (error) {
-      console.error("Error generating reset link:", error);
-      return res.status(500).json({ error: "Failed to generate reset link" });
-    }
-  });
+//     } catch (error) {
+//       console.error("Error generating reset link:", error);
+//       return res.status(500).json({ error: "Failed to generate reset link" });
+//     }
+//   });
   
 
 

@@ -22,13 +22,12 @@ async function CreateConnection(){
 export const Client=await CreateConnection()
 
 
-app.get('/',function(req,res){
+app.get('/',(req,res)=>{
     res.send('myself divya divya has started a port')
 })
 
 app.use("/users",usersRouter)
 
 app.listen(port,()=>console.log("the server has started on the",port))
-
 
 
